@@ -1,0 +1,3 @@
+from find_duplicates import md5sum_per_catalog
+
+md5sum_per_catalog(recursively=True)

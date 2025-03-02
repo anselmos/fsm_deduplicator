@@ -13,7 +13,25 @@
             <li>{{duplicate_path}}</li>
         </ul>
     {% endfor %}
-    <li><input name="where-to"></li>
+    <li>
+        <form method="post" action="/action-move/">
+        <label for="move_path">path</label>
+            <input type="text" name="move_path"
+                   id="move_path"
+                   placeholder="New Path"
+                   size="100"
+                   value="{{default_path_prefix}}">
+            <label for="move_filename">filename</label>
+            <input type="text" name="move_filename"
+                   id="move_filename"
+                   placeholder="New Filename or default if not specified"
+                   size="25"
+                   value="">
+            <input name="md5_sum" hidden value="{{ duplicate_md5 }}">
+            <input name="previous_url_path" hidden value="big_files">
+            <button type="submit">Submit</button>
+        </form>
+    </li>
 {% endfor %}
 
 </body>

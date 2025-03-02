@@ -1,6 +1,7 @@
 from sqlalchemy import or_, and_
 
-from config import EXCLUDED_PATHS, DIR_PATHS_PER_MD5SUM_PICKLE, INIT_DIR, DIRS_DUPLICATED_CATALOG_EXCLUDED
+from config import EXCLUDED_PATHS, DIR_PATHS_PER_MD5SUM_PICKLE, INIT_DIR, DIRS_DUPLICATED_CATALOG_EXCLUDED, \
+    MD5DIR_PATH_IGNORED, ACTION_MOVE_DIRS_IGNORED, DIRS_DUPLICATE_IGNORED_NAMES
 from fsm_connector.db.models import File
 from fsm_connector.pg import PGConnector
 from utils import save_pickle, load_pickle
@@ -35,7 +36,16 @@ def find_images_duplicate_md5():
             ~File.path.like(EXCLUDED_PATHS[8]),
         )
     ))
-    return convert_to_dict_md5_sum_key_path_value(all_file_paths)
+    per_md5_key = convert_to_dict_md5_sum_key_path_value(all_file_paths)
+    duplicates = {}
+    count = 0
+    for md5sum, paths in per_md5_key.items():
+        if len(paths) > 1:
+            duplicates[md5sum] = paths
+            count += 1
+        if count == 1000:
+            return duplicates
+    return duplicates
 
 def convert_to_dict_md5_sum_key_path_value(query_selection):
     data = {}
@@ -51,7 +61,14 @@ def get_big_size_duplicates():
     pg_connector = PGConnector()
     session = pg_connector.get_session()
     all_file_paths = (session.query(File.path, File.md5sum, File.size).filter(
-        File.size >= BIG_FILE_SIZE
+        and_(
+            File.size >= BIG_FILE_SIZE,
+            or_(
+                File.to_be_deleted == False,
+                File.to_be_deleted == None,
+            )
+
+        )
     ).order_by(File.size.desc()))
     per_md5_key = convert_to_dict_md5_sum_key_path_value(all_file_paths)
     duplicates = {}
@@ -72,7 +89,12 @@ def md5sum_per_catalog(recursively=False):
     """
     pg_connector = PGConnector()
     session = pg_connector.get_session()
-    all_file_paths = (session.query(File.path, File.md5sum, File.name))
+    all_file_paths = (session.query(File.path, File.md5sum, File.name).filter(
+        or_(
+            File.to_be_deleted == False,
+            File.to_be_deleted == None,
+        )
+    ))
     paths_unique = {}
     for [path, md5sum, name] in all_file_paths:
         path_sub_directories = path.split("/")
@@ -90,7 +112,6 @@ def md5sum_per_catalog(recursively=False):
     unique_md5_of_catalog = {}
     for dir_of_file, md5sum_dir in paths_unique.items():
         try:
-            # print(f"found duplicate catalog!! {dir_of_file}")
             unique_md5_of_catalog[md5sum_dir].append(dir_of_file)
         except KeyError:
             unique_md5_of_catalog[md5sum_dir] = [dir_of_file]
@@ -113,7 +134,14 @@ def get_duplicates_per_catalog_depth(refresh=False):
         md5sum_per_catalog(recursively=True)
     duplicates_per_dir_depth = {}
     dir_path_per_md5sums = load_pickle(DIR_PATHS_PER_MD5SUM_PICKLE)
+    all_dir_sum_ignored = load_pickle(ACTION_MOVE_DIRS_IGNORED)
     for (file_depth, unique_dir, md5sum_of_dir) in sort_dirs_by_depth(init_dir=INIT_DIR):
+        if md5sum_of_dir in all_dir_sum_ignored:
+            continue
+        if  unique_dir in DIRS_DUPLICATE_IGNORED_NAMES:
+            continue
+        if md5sum_of_dir in MD5DIR_PATH_IGNORED:
+            continue
         excluded = False
         for excluded_catalog_name in DIRS_DUPLICATED_CATALOG_EXCLUDED:
             if excluded_catalog_name in unique_dir:
@@ -124,3 +152,7 @@ def get_duplicates_per_catalog_depth(refresh=False):
             duplicates_per_dir_depth.setdefault(file_depth, {})
             duplicates_per_dir_depth[file_depth][md5sum_of_dir] = paths_per_md5sum
     return duplicates_per_dir_depth
+
+def get_paths_directories_by_md5sum_of_directory(md5sum_of_directory):
+    dir_path_per_md5sums = load_pickle(DIR_PATHS_PER_MD5SUM_PICKLE)
+    return dir_path_per_md5sums.get(md5sum_of_directory)

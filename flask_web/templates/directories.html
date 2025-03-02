@@ -5,6 +5,43 @@
     <title>FSM deduplicator Directories duplicated with Depth interfaces</title>
 </head>
 <body>
+<h1>FSM deduplicator Directories duplicated interfaces, depth: {{depth}}</h1>
+<h1>Go to <a href="{{ url_for('directories', depth=depth-1) }}">Depth -1</a></h1>
+<h1>Go to <a href="{{ url_for('directories', depth=depth+1) }}">Depth +1</a></h1>
+{% for depth_elt in list_of_depths %}
+    <h1>Go to <a href="{{ url_for('directories', depth=depth_elt) }}">Depth {{depth_elt}}</a></h1>
+{% endfor %}
+
+{% for duplicate_md5, duplicate_files in data.items() %}
+    <form method="post" action="/action-move/">
+    <h2>{{duplicate_md5}}</h2>
+    {% for duplicate_path in duplicate_files %}
+        <ul>
+            <li>{{duplicate_path}}</li>
+        </ul>
+    {% endfor %}
+    <li>
+
+        <label for="move_path">path</label>
+            <input type="text" name="move_path"
+                   id="move_path"
+                   placeholder="New Path"
+                   size="100"
+                   value="{{default_path_prefix}}">
+            <label for="move_filename">filename</label>
+            <input type="text" name="move_filename"
+                   id="move_filename"
+                   placeholder="New Filename or default if not specified"
+                   size="25"
+                   value="">
+            <input name="md5_sum" hidden value="{{ duplicate_md5 }}">
+            <input name="previous_url_depth" hidden value="{{depth}}">
+            <input name="previous_url_path" hidden value="directories">
+            <button type="submit">Submit</button>
+
+    </li>
+        </form>
+{% endfor %}
 
 </body>
 </html>

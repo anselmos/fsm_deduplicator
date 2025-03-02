@@ -5,6 +5,33 @@
     <title>FSM deduplicator Image Files interfaces</title>
 </head>
 <body>
-
+<h1>FSM deduplicator Big Files interfaces</h1>
+{% for duplicate_md5, duplicate_files in data.items() %}
+    <h2>{{duplicate_md5}}</h2>
+    {% for duplicate_path in duplicate_files %}
+        <ul>
+            <li>{{duplicate_path}}</li>
+        </ul>
+    {% endfor %}
+    <li>
+        <form method="post" action="/action-move/">
+        <label for="move_path">path</label>
+            <input type="text" name="move_path"
+                   id="move_path"
+                   placeholder="New Path"
+                   size="100"
+                   value="{{default_path_prefix}}">
+            <label for="move_filename">filename</label>
+            <input type="text" name="move_filename"
+                   id="move_filename"
+                   placeholder="New Filename or default if not specified"
+                   size="25"
+                   value="">
+            <input name="md5_sum" hidden value="{{ duplicate_md5 }}">
+            <input name="previous_url_path" hidden value="image_files">
+            <button type="submit">Submit</button>
+        </form>
+    </li>
+{% endfor %}
 </body>
 </html>

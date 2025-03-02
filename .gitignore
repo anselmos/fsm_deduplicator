@@ -2,4 +2,4 @@
 logs/*
 config.py
 .idea/*
-
+*.pickle
