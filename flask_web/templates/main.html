@@ -1,7 +1,17 @@
-<!doctype html>
-<title>Hello from Flask</title>
-{% if person %}
-  <h1>Hello {{ person }}!</h1>
-{% else %}
-  <h1>Hello, World!</h1>
-{% endif %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>FSM Deduplicator web interface</title>
+</head>
+<body>
+<h1> Please choose which deduplication process you want to check</h1>
+<ul>
+    <li><a href="{{ url_for('big_files') }}">Big size files</a></li>
+    <li><a href="{{ url_for('directories') }}">Directories</a></li>
+    <li><a href="{{ url_for('image_files') }}">Image Files</a></li>
+</ul>
+
+</body>
+</html>
+

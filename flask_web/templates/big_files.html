@@ -2,9 +2,19 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>FSM deduplicator Big Files interfaces</title>
 </head>
 <body>
+<h1>FSM deduplicator Big Files interfaces</h1>
+{% for duplicate_md5, duplicate_files in data.items() %}
+    <h2>{{duplicate_md5}}</h2>
+    {% for duplicate_path in duplicate_files %}
+        <ul>
+            <li>{{duplicate_path}}</li>
+        </ul>
+    {% endfor %}
+    <li><input name="where-to"></li>
+{% endfor %}
 
 </body>
 </html>

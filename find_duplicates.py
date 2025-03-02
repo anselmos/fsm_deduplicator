@@ -1,35 +1,17 @@
-from pprint import pformat, pprint
-
-from connectors.db.models import File
-from connectors.pg import PGConnector
-from utils import save_pickle, load_pickle
 from sqlalchemy import or_, and_
-MD5SUM_PATHS_INBOXER = "md5sum_paths_inboxer-z420.pickle"
 
-EXCLUDED_PATHS = [
-    '%/Programowanie/CygwinLocalPackage%',
-    '%ProLap%',
-    '%app/src/main/%',
-    '%CD_GRY_PRACA_MGR_TATY_ETC_2003-2005%',
-    '%ProLap/FINEPIX_CD/%',
-    '%DS213J/ALL/1__projects_ALL/Projects_goclever%',
-    '%wordpress301PL%',
-    '%Kopie_Plyty_CDDVD/DKMMBODY%',
-    '%ReniaDYSK_BACKUP%',
-]
-INIT_DIR = "/mnt/VDEV/HOME/"
-DIR_PATHS_PER_MD5SUM_PICKLE = "unique_md5_of_catalog.pickle"
-DIRS_DUPLICATED_CATALOG_EXCLUDED = [
-    ".git/",
-    '.settings',
-    '.svn',
-    'eclipse',
-    '.thumbnail',
-]
+from config import EXCLUDED_PATHS, DIR_PATHS_PER_MD5SUM_PICKLE, INIT_DIR, DIRS_DUPLICATED_CATALOG_EXCLUDED
+from fsm_connector.db.models import File
+from fsm_connector.pg import PGConnector
+from utils import save_pickle, load_pickle
+# TODO move into psycopg2 direct access instead of reusing sqlalchemy.
+
+
 BIG_FILE_SIZE = 1073741824 #1GB
 def find_images_duplicate_md5():
     pg_connector = PGConnector()
     session = pg_connector.get_session()
+    # TODO find a better way to make those filter with OR
     all_file_paths = (session.query(File.path, File.md5sum, File.extension).filter(
         or_(
             File.extension == 'JPG',
@@ -70,7 +52,7 @@ def get_big_size_duplicates():
     session = pg_connector.get_session()
     all_file_paths = (session.query(File.path, File.md5sum, File.size).filter(
         File.size >= BIG_FILE_SIZE
-    ))
+    ).order_by(File.size.desc()))
     per_md5_key = convert_to_dict_md5_sum_key_path_value(all_file_paths)
     duplicates = {}
     for md5sum, paths in per_md5_key.items():
@@ -142,19 +124,3 @@ def get_duplicates_per_catalog_depth(refresh=False):
             duplicates_per_dir_depth.setdefault(file_depth, {})
             duplicates_per_dir_depth[file_depth][md5sum_of_dir] = paths_per_md5sum
     return duplicates_per_dir_depth
-
-
-def main():
-    # 1 Option: ONLY IMAGES:
-    # find_images_duplicate_md5()
-
-    # 2 Option: PER CATALOGS MD5!!
-    # duplicates_per_dir_depth = get_duplicates_per_catalog_depth()
-    # for md5sum_of_dir, paths_per_md5sum in duplicates_per_dir_depth[4].items():
-    #     print(md5sum_of_dir, paths_per_md5sum)
-
-    # 3 Option: PER BIG SIZE FILES!
-    big_size_duplicates = get_big_size_duplicates()
-    print(pformat(big_size_duplicates))
-if __name__ == "__main__":
-    main()

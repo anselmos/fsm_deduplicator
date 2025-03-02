@@ -1,0 +1,4 @@
+# TODO!!
+
+# This package needs to be exchanged between fsm_processor and fsm_deduplicator
+# at least at this point where we reuse sqlalchemy connection instead of strict psycopg2 connection.

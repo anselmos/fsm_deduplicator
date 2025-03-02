@@ -1,7 +1,7 @@
 
 
-from connectors.base import BaseConnector
-from connectors.db.models import Base, File, Image
+from fsm_connector.base import BaseConnector
+from fsm_connector.db.models import Base, File, Image
 from constants import DB_URL, DB_ECHO
 from utils import get_logger_config
 

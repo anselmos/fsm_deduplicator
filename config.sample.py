@@ -1,0 +1,6 @@
+EXCLUDED_PATHS = [
+]
+INIT_DIR = "init-dir"
+DIR_PATHS_PER_MD5SUM_PICKLE = "unique_md5_of_catalog.pickle"
+DIRS_DUPLICATED_CATALOG_EXCLUDED = [
+]

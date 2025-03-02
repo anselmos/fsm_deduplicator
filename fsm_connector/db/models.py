@@ -3,7 +3,8 @@ from typing import Optional
 from sqlalchemy import String, Text, Boolean, BIGINT
 from sqlalchemy.orm import declarative_base, Mapped, mapped_column
 
-from connectors.db.JsonDecorator import JsonDecorator
+from fsm_connector.db.JsonDecorator import JsonDecorator
+
 
 Base = declarative_base()
 
